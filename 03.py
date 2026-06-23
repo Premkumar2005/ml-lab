@@ -22,99 +22,40 @@ plt.show()
 
 # %%
 #Write a program to implement the A* algorithm
+from queue import PriorityQueue
 
-Graph_nodes = {
-    'A': [('B', 6), ('F', 3)],
-    'B': [('C', 3), ('D', 2)],
-    'C': [('D', 1), ('E', 5)],
-    'D': [('C', 1), ('E', 8)],
-    'E': [('I', 5), ('J', 5)],
-    'F': [('G', 1),('H', 7)] ,
-    'G': [('I', 3)],
-    'H': [('I', 2)],
-    'I': [('E', 5), ('J', 3)],
-     
+def a_star_search(graph, start, goal, heuristic):
+    visited = set()
+    pq = PriorityQueue()
+    # Cost, current_node, path
+    pq.put((0 + heuristic[start], 0, start, [start]))
+    
+    while pq:
+        _, g_cost, current, path = pq.get()
+        
+        if current in visited:
+            continue
+            
+        visited.add(current)
+        
+        if current == goal:
+            return path, g_cost
+            
+        for neighbor, cost in graph.get(current, []):
+            if neighbor not in visited:
+                new_cost = g_cost + cost
+                pq.put((new_cost + heuristic[neighbor], new_cost, neighbor, path + [neighbor]))
+                
+    return None, float('inf')
+
+graph = {
+    'S': [('A', 1), ('B', 4)],
+    'A': [('B', 2), ('C', 5), ('G', 12)],
+    'B': [('C', 2)],
+    'C': [('G', 3)]
 }
+heuristic = { 'S': 7, 'A': 6, 'B': 2, 'C': 1, 'G': 0 }
 
-def get_neighbors(v):
-    if v in Graph_nodes:
-        return Graph_nodes[v]
-    else:
-        return None
-        
-def h(n):
-        H_dist = {
-            'A': 10,
-            'B': 8,
-            'C': 5,
-            'D': 7,
-            'E': 3,
-            'F': 6,
-            'G': 5,
-            'H': 3,
-            'I': 1,
-            'J': 0             
-        }
-        return H_dist[n]
-        
-def aStarAlgo(start_node, stop_node):
-         
-        open_set = set(start_node) 
-        closed_set = set()
-        g = {} 
-        parents = {}
-        g[start_node] = 0
-        parents[start_node] = start_node
-        
-        while len(open_set) > 0:
-            n = None
-
-            for v in open_set:
-                if n == None or g[v] + h(v) < g[n] + h(n):
-                    n = v
-     
-            if n == stop_node or Graph_nodes[n] == None:
-                pass
-            else:
-                for (m, weight) in get_neighbors(n):
-                    if m not in open_set and m not in closed_set:
-                        open_set.add(m)
-                        parents[m] = n
-                        g[m] = g[n] + weight
-                         
-                    else:
-                        if g[m] > g[n] + weight:
-                            g[m] = g[n] + weight
-                            parents[m] = n
-                            if m in closed_set:
-                                closed_set.remove(m)
-                                open_set.add(m)
- 
-            if n == None:
-                print('Path does not exist!')
-                return None
-            if n == stop_node:
-                path = []
- 
-                while parents[n] != n:
-                    path.append(n)
-                    n = parents[n]
- 
-                path.append(start_node)
- 
-                path.reverse()
- 
-                print('Path found: {}'.format(path))
-                return path
-            open_set.remove(n)
-            closed_set.add(n)
- 
-        print('Path does not exist!')
-        return None
-
-aStarAlgo('A', 'J')       
-
-# %%
-
-
-
+path, cost = a_star_search(graph, 'S', 'G', heuristic)
+print("A* Path:", path)
+print("Total Cost:", cost)
